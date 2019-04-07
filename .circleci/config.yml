@@ -71,13 +71,12 @@ jobs:
       - run:
           name: check if repo belongs to us or not
           command: |
-            "echo $CIRCLE_REPOSITORY_URL"
-            # if [ "$CIRCLE_REPOSITORY_URL" == "https://github.com/Kachulio1/plaunch" ]; then
-              # exit 0
-            # else
-              # echo "This is a forked repo, no tests will run for this one."
-              # exit 1
-            # fi
+            if [ "$CIRCLE_REPOSITORY_URL" == "git@github.com:Kachulio1/plaunch.git" ]; then
+              exit 0
+            else
+              echo "This is a forked repo, no tests will run for this one."
+              exit 1
+            fi
   build:
     docker:
       - image: circleci/python:2.7.13
