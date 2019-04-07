@@ -1,61 +1,93 @@
----
+# ---
+# version: 2
+# jobs:
+#   node-latest: &test
+#     docker:
+#       - image: node:latest
+#     working_directory: ~/cli
+#     steps:
+#       - checkout
+#       - restore_cache: &restore_cache
+#           keys:
+#             - v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
+#             - v1-npm-{{checksum ".circleci/config.yml"}}
+#       - run:
+#           name: Install dependencies
+#           command: yarn
+#       - run: ./bin/run --version
+#       - run: ./bin/run --help
+#       - run:
+#           name: Testing
+#           command: yarn test
+#       - run:
+#           name: Submitting code coverage to codecov
+#           command: |
+#             ./node_modules/.bin/nyc report --reporter text-lcov > coverage.lcov
+#             curl -s https://codecov.io/bash | bash
+#   node-8:
+#     <<: *test
+#     docker:
+#       - image: node:8
+#   node-10:
+#     <<: *test
+#     docker:
+#       - image: node:10
+#   cache:
+#     <<: *test
+#     steps:
+#       - checkout
+#       - run:
+#           name: Install dependencies
+#           command: yarn
+#       - save_cache:
+#           key: v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
+#           paths:
+#             - ~/cli/node_modules
+#             - /usr/local/share/.cache/yarn
+#             - /usr/local/share/.config/yarn
+
+# workflows:
+#   version: 2
+#   "plaunch":
+#     jobs:
+#       - node-latest
+#       - node-8
+#       - node-10
+#       - cache:
+#           filters:
+#             tags:
+#               only: /^v.*/
+#             branches:
+#               ignore: /.*/
+
+
 version: 2
 jobs:
-  node-latest: &test
-    docker:
-      - image: node:latest
-    working_directory: ~/cli
+  check-repo:
+    working_directory: ~/repo
     steps:
-      - checkout
-      - restore_cache: &restore_cache
-          keys:
-            - v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
-            - v1-npm-{{checksum ".circleci/config.yml"}}
       - run:
-          name: Install dependencies
-          command: yarn
-      - run: ./bin/run --version
-      - run: ./bin/run --help
-      - run:
-          name: Testing
-          command: yarn test
-      - run:
-          name: Submitting code coverage to codecov
+          name: check if repo belongs to us or not
           command: |
-            ./node_modules/.bin/nyc report --reporter text-lcov > coverage.lcov
-            curl -s https://codecov.io/bash | bash
-  node-8:
-    <<: *test
+            if [ "$CIRCLE_REPOSITORY_URL" == "https://github.com/davidmukiibi/bucketlist-ios-" ]; then
+              exit 0
+            else
+              echo "This is a forked repo, no tests will run for this one."
+              exit 1
+            fi
+  build:
     docker:
-      - image: node:8
-  node-10:
-    <<: *test
-    docker:
-      - image: node:10
-  cache:
-    <<: *test
+      - image: circleci/python:2.7.13
     steps:
-      - checkout
       - run:
-          name: Install dependencies
-          command: yarn
-      - save_cache:
-          key: v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
-          paths:
-            - ~/cli/node_modules
-            - /usr/local/share/.cache/yarn
-            - /usr/local/share/.config/yarn
-
+          name: install dependencies
+          command: |
+            "echo it worked!"     
 workflows:
   version: 2
-  "plaunch":
+  build_and_test:
     jobs:
-      - node-latest
-      - node-8
-      - node-10
-      - cache:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
+      - check-repo
+      - build:
+          requires:
+            - check-repo
