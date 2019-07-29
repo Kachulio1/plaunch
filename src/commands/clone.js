@@ -2,9 +2,14 @@ const {Command, flags} = require('@oclif/command')
 
 class CloneCommand extends Command {
   async run() {
-    const {flags} = this.parse(CloneCommand)
-    const name = flags.name || 'Github'
-    this.log(`hello ${name} from ./src/commands/hello.js`)
+    let {
+      flags: {name, url},
+    } = this.parse(CloneCommand)
+    if (!name) {
+      this.warn('uh oh! you did not provide a folder name')
+      name = 'Github'
+    }
+    this.log(`the ${name} ${url}`)
   }
 }
 
