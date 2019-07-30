@@ -10,7 +10,12 @@
   "dependencies": {
     "@oclif/command": "^1",
     "@oclif/config": "^1",
-    "@oclif/plugin-help": "^2"
+    "@oclif/plugin-help": "^2",
+    "@types/execa": "^2.0.0",
+    "execa": "^2.0.3",
+    "find-up": "^4.1.0",
+    "listr": "^0.14.3",
+    "resolve-dir": "^1.0.1"
   },
   "devDependencies": {
     "@oclif/dev-cli": "^1",
