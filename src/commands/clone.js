@@ -1,15 +1,66 @@
 const {Command, flags} = require('@oclif/command')
+const path = require('path')
+const findUp = require('find-up')
+const execa = require('execa')
+const Listr = require('listr')
+let dir = ''
+const tasks = new Listr([
+  {
+    title: 'Finding Directory',
+    task: () => {
+      return new Listr([
+        {
+          title: 'Searching...',
+          task: async ({name}) => {
+            dir = await findUp(
+              async directory => {
+                const hasDir = await findUp.exists(path.join(directory, name))
+                return hasDir && directory
+              },
+              {type: 'directory'}
+            )
+            if (!dir) {
+              throw new Error('could not find this directory: ' + name)
+            }
+          },
+        },
+      ])
+    },
+  },
+
+  {
+    title: 'cloning repo',
+    task: async ({name, url, command}) => {
+      if (!url) {
+        throw new Error('No url provided')
+      }
+
+      try {
+        let repoName = url.match(/([^/]+)\.git/g)[0].split('.')[0]
+        await execa('git', [
+          'clone',
+          `${url}`,
+          `${dir + '/' + name}/${repoName}`,
+        ])
+      } catch (error) {
+        if (
+          error.stderr.includes('already exists and is not an empty directory')
+        ) {
+          command.error('The repo exist')
+        }
+      }
+    },
+  },
+])
 
 class CloneCommand extends Command {
   async run() {
     let {
       flags: {name, url},
     } = this.parse(CloneCommand)
-    if (!name) {
-      this.warn('uh oh! you did not provide a folder name')
-      name = 'Github'
-    }
-    this.log(`the ${name} ${url}`)
+    let command = this
+
+    tasks.run({name, url, command}).catch(err => {})
   }
 }
 
