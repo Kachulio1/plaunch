@@ -39,6 +39,7 @@ const tasks = new Listr([
         // the regex matches the name of the repo
         directory += name + '/' + url.match(/([^/]+)\.git/g)[0].split('.')[0]
         await execa('git', ['clone', `${url}`, `${directory}`])
+        execa('code', [`${directory}`]).stdout.pipe(process.stdout)
       } catch (error) {
         if (
           error.stderr.includes('already exists and is not an empty directory')
