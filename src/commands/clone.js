@@ -3,7 +3,7 @@ const path = require('path')
 const findUp = require('find-up')
 const execa = require('execa')
 const Listr = require('listr')
-let dir = ''
+let directory = ''
 const tasks = new Listr([
   {
     title: 'Finding Directory',
@@ -36,12 +36,9 @@ const tasks = new Listr([
       }
 
       try {
-        let repoName = url.match(/([^/]+)\.git/g)[0].split('.')[0]
-        await execa('git', [
-          'clone',
-          `${url}`,
-          `${dir + '/' + name}/${repoName}`,
-        ])
+        // the regex matches the name of the repo
+        directory += name + '/' + url.match(/([^/]+)\.git/g)[0].split('.')[0]
+        await execa('git', ['clone', `${url}`, `${directory}`])
       } catch (error) {
         if (
           error.stderr.includes('already exists and is not an empty directory')
