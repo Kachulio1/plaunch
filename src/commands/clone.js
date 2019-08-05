@@ -3,6 +3,7 @@ const path = require('path')
 const findUp = require('find-up')
 const execa = require('execa')
 const Listr = require('listr')
+const inquirer = require('inquirer');
 let directory = ''
 const tasks = new Listr([
   {
